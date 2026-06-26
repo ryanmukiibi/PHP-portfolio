@@ -1,10 +1,19 @@
+<?php
+
+use function PHPSTORM_META\type;
+
+require_once 'Db.php';
+$query = "SELECT id, title, description, url, image_url, is_visible, created_at FROM projects WHERE is_visible = 1 ORDER BY created_at DESC";
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$projects = $stmt->get_result();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <title>Portfolio</title>
 <style>
     .projectDescription {
-        
          font-family: Arial, Helvetica, sans-serif;
          padding: 10px;
          margin: 10px;
@@ -137,13 +146,7 @@
 <body style="background-color: rgb(228, 245, 252);">
 <div class="header"> 
     <h1 ><strong style="color: #007bff;">Portfolio</strong></h1> 
-    <nav>
-        <a href="#project1">Project 1</a>
-        <a href="#project2">Project 2</a>
-        <a href="#project3">Project 3</a>
-        <a href="#project4">Project 4</a>
-        <a href="#contact">Contact</a>
-    </nav>
+    <?php include 'nav.php'; ?>
 </div>
 
 <hr>
@@ -155,33 +158,18 @@
     <p>Placeholder for credentials.</p>
 </section>
 
-<section id="project1">
-    <h2 class="h2">Project 1:</h2>
-    <div class="project-card">
-        <p>Information regarding project 1. This is where you can describe your first project in detail, including the technologies used and your role.</p>
-    </div>
-</section>
-
-<section id="project2">
-    <h2 class="h2">Project 2:</h2>
-    <div class="project-card">
-        <p>Information regarding project 2. Describe your second project here.</p>
-    </div>
-</section>
-
-<section id="project3">
-    <h2 class="h2">Project 3:</h2>
-    <div class="project-card">
-        <p>Information regarding project 3. Describe your third project here.</p>
-    </div>
-</section>
-
-<section id="project4">
-    <h2 class="h2">Project 4:</h2>
-    <div class="project-card">
-        <p>Information regarding project 4. Describe your fourth project here.</p>
-    </div>
-</section>
+<?php if ($projects->num_rows > 0): ?>
+    <?php while($p = $projects->fetch_assoc()): ?>
+        <section id="project<?php echo $p['id']; ?>">
+            <h2 class="h2"><?php echo htmlspecialchars($p['title']); ?>:</h2>
+            <div class="project-card">
+                <p><?php echo htmlspecialchars($p['description']); ?></p>
+            </div>
+        </section>
+    <?php endwhile; ?>
+<?php else: ?>
+    <p style="text-align:center;">No projects found.</p>
+<?php endif; ?>
 
 <section id="contact">
     <h2 class="h2">Contact:</h2>
@@ -211,7 +199,9 @@
 <footer>
     <p>&copy; 2026 Ryan's Portfolio. All rights reserved.</p>
 </footer>
-
-
 </body>
 </html>
+<?php
+$stmt->close();
+$conn->close();
+?>
